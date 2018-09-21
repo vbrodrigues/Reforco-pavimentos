@@ -1,18 +1,31 @@
 import numpy as np
 import math
 import sys
+import matplotlib.pyplot as plt
+from colorama import init, Fore
 
-S = int(input("\n\tQual a porcetagem de silte passante pela peneira No. 200 do material? (%) "))
-CBR = int(input("\n\tQual o CBR (Índice Suporte Califórnia) do subleito? (%) "))
-rev = int(input("\n\tQual a espessura da camada de revestimento? (cm) "))
-Hcg = int(input("\n\tQual a espessura da camada granular do pavimento? (cm) "))
-N = int(input("\n\tQual o N? (Não utilize notação científica.) "))
+init(convert = True)
+
+print(Fore.LIGHTYELLOW_EX + "\n\t\t========= PROGRAMA DE CÁLCULO DE REFORÇO DE PAVIMENTOS FLEXÍVEIS =========" + Fore.RESET)
+
+S = int(input("\n\t-> Qual a porcetagem de silte passante pela peneira No. 200 do material? (%) "))
+CBR = int(input("\n\t-> Qual o CBR (Índice Suporte Califórnia) do subleito? (%) "))
+rev = int(input("\n\t-> Qual a espessura da camada de revestimento? (cm) "))
+Hcg = int(input("\n\t-> Qual a espessura da camada granular do pavimento? (cm) "))
+N = int(input("\n\t-> Qual o N? (Não utilize notação científica.) "))
+
 deflexoes = []
-num_deflexoes = int(input("\n\tA partir do levantamento deflectométrico do segmento homogêneo, insira o número de deflexões que você deseja informar: "))
+num_deflexoes = int(input("\n\t->A partir do levantamento deflectométrico do segmento homogêneo, insira o número de deflexões que você deseja informar: "))
 
 for i in range(num_deflexoes):
+    print(Fore.YELLOW + "\n", i + 1, ":" + Fore.RESET)
     df = float(input("Deflexão em 0.01mm: "))
     deflexoes.append(df)
+
+deflexoes = np.array(deflexoes)
+dm = np.mean(deflexoes)
+std = np.std(deflexoes)
+dp = dm + std
 
 def tipo_solo(S, CBR):
     if CBR >= 10:
@@ -37,7 +50,7 @@ def tipo_solo(S, CBR):
         else:
             return "Tipo III"
     else:
-        return "Ocorreu um erro! Verifique o valor de entrada do CBR."
+        return Fore.RED + "Ocorreu um erro! Verifique o valor de entrada do CBR."
 
 solo = tipo_solo(S, CBR)
 
@@ -50,21 +63,22 @@ def constantes(Hcg, solo):
         elif solo == "Tipo III":
             return (0, 1)
         else:
-            return "Ocorreu algum erro!"
+            return Fore.RED + "Ocorreu algum erro!"
 
     else:
         return (0, 1)
 
-deflexoes = np.array(deflexoes)
-dm = np.mean(deflexoes)
-std = np.std(deflexoes)
-dp = dm + std
 
 def pro_11_79(dp):
     Dadm = 10**(3.01 - 0.175*math.log10(N))
     HR = 40 * math.log10(dp / Dadm)
-    print("\nRESULTADOS:")
-    print("\n\t**A deflexão admissível é {:.2f} x10^2 mm**\n\t**A espessura da camada de reforço deve ser de {:.2f} cm.**".format(Dadm, HR))
+    print(Fore.LIGHTGREEN_EX + "\nRESULTADOS:")
+    print(Fore.CYAN + "\n\t- A deflexão de projeto é" + Fore.LIGHTCYAN_EX + " {:.2f} x10^-2".format(dp))
+    print(Fore.CYAN + "\t- A deflexão admissível é" + Fore.LIGHTCYAN_EX + " {:.2f} x10^-2 mm".format(Dadm) + Fore.CYAN + "\n\t- A espessura da camada de reforço deve ser de" + Fore.LIGHTCYAN_EX + " {:.2f} cm.".format(HR) + Fore.RESET)
+    plt.style.use("ggplot")
+    plt.plot(deflexoes)
+    plt.ylabel("Deflexão em 0.01mm")
+    plt.show()
 
 def pro_269_94(dp):
     I1, I2 = constantes(Hcg, solo)
@@ -72,13 +86,17 @@ def pro_269_94(dp):
     hef_adot = hef if 0 < hef < rev else rev
     Dadm = 10**(3.148 - 0.188*math.log10(N))
     HR = -19.015 + 238.14/math.sqrt(Dadm) - 1.357*hef_adot + 1.016*I1 + 3.893*I2
-    print("\nRESULTADOS:")
-    print("\n\t**A deflexão de projeto Dp é {:.2f} x10^-2 mm.**".format(dp))
-    print("\n\t**O tipo de solo é do {}**.\n\t**A constante I1 recebe o valor {} e a constante I2 recebe o valor {}.**".format(solo, I1, I2))
-    print("\n\t**Espessura equivalente ao revestimento betuminoso existente (antigo): {:.2f} cm.**".format(hef_adot))
-    print("\n\t**A deflexão admissível é de {:.2f} x10^-2 mm.**\n\t**A espessura da camada de reforço deve ser de {:.2f} cm.**".format(Dadm, HR))
+    print(Fore.LIGHTGREEN_EX + "\nRESULTADOS:")
+    print(Fore.CYAN + "\n\t- A deflexão de projeto Dp é " + Fore.LIGHTCYAN_EX + " {:.2f} x10^-2 mm.".format(dp))
+    print(Fore.CYAN + "\t- O tipo de solo é do" + Fore.LIGHTCYAN_EX +" {}.".format(solo) + Fore.CYAN + "\n\t- A constante I1 recebe o valor" + Fore.LIGHTCYAN_EX + " {}".format(I1) + Fore.CYAN + " e a constante I2 recebe o valor" + Fore.LIGHTCYAN_EX + " {}.".format(I2))
+    print(Fore.CYAN + "\t- Espessura equivalente ao revestimento betuminoso existente (antigo): " + Fore.LIGHTCYAN_EX + "{:.2f} cm.".format(hef_adot))
+    print(Fore.CYAN + "\t- A deflexão admissível é de " + Fore.LIGHTCYAN_EX + "{:.2f} x10^-2 mm.".format(Dadm) + Fore.CYAN +  "\n\t- A espessura da camada de reforço deve ser de " + Fore.LIGHTCYAN_EX + "{:.2f} cm.".format(HR) + Fore.RESET)
     if HR <= 0:
-        print("Como o cálculo resultou em uma espessura negativa, conclue-se que não é necessário realizar um reforço no pavimento. Pode ser realizada alguma medida preventiva.")
+        print(Fore.CYAN + "\n\t- Como o cálculo resultou em uma espessura negativa, conclue-se que não é necessário realizar um reforço no pavimento. Pode ser realizada alguma medida preventiva.\n" + Fore.RESET)
+    plt.style.use("ggplot")
+    plt.plot(deflexoes)
+    plt.ylabel("Deflexão em 0.01mm")
+    plt.show()
 
 decisao = ""
 def feedback():
