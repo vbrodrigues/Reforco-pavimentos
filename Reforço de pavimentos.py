@@ -83,6 +83,8 @@ def pro_11_79(dp):
     print(Fore.LIGHTGREEN_EX + "\nRESULTADOS:")
     print(Fore.CYAN + "\n\t- A deflexão de projeto é" + Fore.LIGHTCYAN_EX + " {:.2f} x10^-2".format(dp))
     print(Fore.CYAN + "\t- A deflexão admissível é" + Fore.LIGHTCYAN_EX + " {:.2f} x10^-2 mm".format(Dadm) + Fore.CYAN + "\n\t- A espessura da camada de reforço deve ser de" + Fore.LIGHTCYAN_EX + " {:.2f} cm.".format(HR) + Fore.RESET)
+    if HR <= 0:
+        print(Fore.CYAN + "\n\t- Como o cálculo resultou em uma espessura negativa, conclue-se que não é necessário realizar um reforço no pavimento. Pode ser realizada alguma medida preventiva.\n" + Fore.RESET)
     plt.style.use("ggplot")
     plt.plot(deflexoes)
     plt.ylabel("Deflexão em 0.01mm")
