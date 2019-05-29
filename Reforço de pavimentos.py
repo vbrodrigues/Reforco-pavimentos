@@ -8,6 +8,7 @@ init(convert = True)
 
 print(Fore.LIGHTYELLOW_EX + "\n\t\t========= PROGRAMA DE CÁLCULO DE REFORÇO DE PAVIMENTOS FLEXÍVEIS =========" + Fore.RESET)
 
+# Pede para usuário informar dados um a um
 S = int(input("\n\t-> Qual a porcetagem de silte passante pela peneira No. 200 do material? (%) "))
 CBR = int(input("\n\t-> Qual o CBR (Índice Suporte Califórnia) do subleito? (%) "))
 rev = int(input("\n\t-> Qual a espessura da camada de revestimento? (cm) "))
@@ -17,16 +18,21 @@ N = int(input("\n\t-> Qual o N? (Não utilize notação científica.) "))
 deflexoes = []
 num_deflexoes = int(input("\n\t->A partir do levantamento deflectométrico do segmento homogêneo, insira o número de deflexões que você deseja informar: "))
 
+# A partir do número de deflexões informado pelo usuário, é pedido para informar cada deflexão na ordem
 for i in range(num_deflexoes):
     print(Fore.YELLOW + "\n", i + 1, ":" + Fore.RESET)
     df = float(input("Deflexão em 0.01mm: "))
+    # Armazena a deflexão informada
     deflexoes.append(df)
 
 deflexoes = np.array(deflexoes)
+
+# Calcula a média e o desvio padrão das deflexões para calcular dp
 dm = np.mean(deflexoes)
 std = np.std(deflexoes)
 dp = dm + std
 
+# Função para retornar tipo de solo dado S e CBR informado
 def tipo_solo(S, CBR):
     if CBR >= 10:
         if S <= 35:
@@ -54,6 +60,7 @@ def tipo_solo(S, CBR):
 
 solo = tipo_solo(S, CBR)
 
+# Função para retornar constantes I1 e I2
 def constantes(Hcg, solo):
     if Hcg <= 45:
         if solo == "Tipo I":
@@ -69,6 +76,7 @@ def constantes(Hcg, solo):
         return (0, 1)
 
 
+# Função para realizar o dimensionamento pelo PRO 11/79
 def pro_11_79(dp):
     Dadm = 10**(3.01 - 0.175*math.log10(N))
     HR = 40 * math.log10(dp / Dadm)
@@ -80,6 +88,7 @@ def pro_11_79(dp):
     plt.ylabel("Deflexão em 0.01mm")
     plt.show()
 
+# Função para realizar o dimensionamento pelo PRO 269/94
 def pro_269_94(dp):
     I1, I2 = constantes(Hcg, solo)
     hef = -5.737 + 807.961/dp + 0.972*I1 + 4.101*I2
@@ -98,6 +107,8 @@ def pro_269_94(dp):
     plt.ylabel("Deflexão em 0.01mm")
     plt.show()
 
+    
+# Pede para usuário informar o que deseja fazer a partir das opções oferecidas
 decisao = ""
 def feedback():
     decisao = input("\n\tVocê deseja dimensionar a camada de reforço por qual método?\n(a) PRO 11/79\t\t(b) PRO 269/94\t\t(c) Sair do programa\n")
@@ -110,5 +121,6 @@ def feedback():
     else:
         print("Opção Inválida")
 
+# Enquanto a decisão não for de sair, pedir o que o usuário deseja fazer
 while decisao != "c":
     feedback()
